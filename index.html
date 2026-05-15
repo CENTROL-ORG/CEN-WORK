@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORK CEN // Enterprise Workspace Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <div id="signup-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center gap-2">
+                <div class="h-5 w-1.5 bg-slate-900 rounded-full"></div>
+                <h2 class="text-base font-bold text-slate-900 mono">WORK_CEN // Employee Initialization</h2>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                No active employee registry found on this terminal device node. Please provision your corporate workspace assignment credentials below.
+            </p>
+            <hr class="border-slate-100">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Employee Registration Name</label>
+                    <input type="text" id="reg-name" placeholder="e.g., Ishaan" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-slate-400">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Target Banking Destination Network</label>
+                    <input type="text" id="reg-bank" placeholder="e.g., CENTM_BANK_MAIN" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-slate-400 mono">
+                </div>
+                <button onclick="registerDeviceNode()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider py-3 rounded-lg transition-all shadow-sm">
+                    Provision Employee Node
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header class="border-b border-slate-200 bg-white px-4 md:px-6 py-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-sm sticky top-0 z-50">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="h-6 w-1.5 bg-slate-900 rounded-full"></div>
+            <h1 class="text-lg font-bold tracking-tight text-slate-900 mono">
+                WORK_CEN <span class="text-xs font-normal text-slate-400">// Enterprise v3.0</span>
+            </h1>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end text-xs">
+            <button onclick="toggleSettingsPanel()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium mono flex items-center gap-2">
+                👤 Node: <span id="header-user-display" class="font-bold text-slate-900">Loading...</span>
+            </button>
+            
+            <div id="attendance-node" class="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-md font-medium">
+                🔴 Clocked Out
+            </div>
+            
+            <button onclick="toggleAttendance()" id="clock-btn" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-1.5 rounded-md transition-all">
+                Clock In
+            </button>
+        </div>
+    </header>
+
+    <div id="settings-panel" class="bg-white border-b border-slate-200 shadow-inner px-6 py-4 hidden">
+        <div class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Active Employee ID</label>
+                <input type="text" id="settings-username" disabled class="w-full bg-slate-100 border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-500 mono">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Reroute Target Banking String</label>
+                <input type="text" id="settings-bank" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-slate-400 mono font-bold text-slate-900">
+            </div>
+            <div>
+                <button onclick="updateRoutingNetwork()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold uppercase tracking-wider py-2 rounded-lg transition-all">
+                    Update Ledger Destination
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Create Assignment Node</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Task Context / Details</label>
+                        <input type="text" id="task-details" placeholder="e.g., Database Migration Patch v4" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-slate-400">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Allocated Hours</label>
+                            <input type="number" id="task-hrs" min="0" value="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-slate-400 mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Allocated Minutes</label>
+                            <input type="number" id="task-mins" min="0" max="59" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-slate-400 mono">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Deadline Date & Time</label>
+                        <input type="datetime-local" id="task-deadline" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-slate-400 mono">
+                    </div>
+
+                    <button onclick="createNewTask()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider py-3 rounded-lg transition-all mt-2 shadow-sm">
+                        Inject Task to Backlog
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">7-Day Consistency Registry</h3>
+                <div class="grid grid-cols-7 gap-1.5 text-center" id="streak-bar">
+                    </div>
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-medium">Potential Consistency Multiplier:</span>
+                    <span class="font-bold text-emerald-600 tracking-wide mono">+5% Net Bonus</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div id="ongoing-workspace" class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hidden relative overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+                <div class="absolute top-0 left-0 h-1 bg-slate-900 transition-all duration-1000" id="timer-progress-bar" style="width: 0%"></div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wildest bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">Execution Block Active</span>
+                        <h2 id="ongoing-title" class="text-base font-bold text-slate-900 mt-2">No active execution</h2>
+                        <p id="ongoing-meta" class="text-xs text-slate-400 mt-0.5 mono"></p>
+                        <p id="ongoing-status-tag" class="text-xs font-semibold mt-1 text-blue-600"></p>
+                    </div>
+                    <div class="text-left md:text-right">
+                        <div id="ongoing-timer" class="text-3xl font-bold tracking-tight text-slate-900 mono">00:00:00</div>
+                        <div id="ongoing-est-payout" class="text-xs text-emerald-600 font-semibold tracking-wide mt-0.5 mono">Estimated: 0.00 CEN</div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex gap-3">
+                    <button onclick="commitTaskExecution()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider py-2.5 rounded-lg transition-all shadow-sm">
+                        Commit Work to Ledger
+                    </button>
+                    <button onclick="terminateTaskExecution()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-medium uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all">
+                        Terminate Node
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="border-b border-slate-200 bg-slate-50 px-4 flex gap-2">
+                    <button onclick="switchTab('pending')" id="tab-pending-btn" class="border-b-2 border-slate-900 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-900">
+                        Pending Backlog
+                    </button>
+                    <button onclick="switchTab('completed')" id="tab-completed-btn" class="border-b-2 border-transparent px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600">
+                        Historical Ledger
+                    </button>
+                </div>
+
+                <div id="tab-pending" class="p-4 space-y-3 max-h-[500px] overflow-y-auto">
+                    </div>
+
+                <div id="tab-completed" class="p-4 space-y-6 hidden">
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">// Completed Tasks Ledger</h4>
+                        <div class="overflow-x-auto bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-100 text-slate-400 uppercase tracking-wider font-semibold">
+                                        <th class="p-3">Task Architecture</th>
+                                        <th class="p-3">Time Spent</th>
+                                        <th class="p-3 text-right">Earning Transferred</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="completed-rows" class="divide-y divide-slate-50 text-slate-600 mono"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">// Punch Card Registry (Clock In / Out)</h4>
+                        <div class="overflow-x-auto bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-100 text-slate-400 uppercase tracking-wider font-semibold">
+                                        <th class="p-3">Session Date</th>
+                                        <th class="p-3">Clock In</th>
+                                        <th class="p-3">Clock Out</th>
+                                        <th class="p-3 text-right">Total Session Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendance-rows" class="divide-y divide-slate-50 text-slate-600 mono"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDL7CPrwuAw-BrIPHQuNtydc1h1g73sFVk",
+            authDomain: "centrol-bank.firebaseapp.com",
+            databaseURL: "https://centrol-bank-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "centrol-bank",
+            storageBucket: "centrol-bank.firebasestorage.app",
+            messagingSenderId: "577293119465",
+            appId: "1:577293119465:web:1a6f72747c56be845ca578"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let userId = ""; 
+        let targetBankRoute = "";
+        let activeShift = null;
+        let activeTask = null;
+        let timerInterval = null;
+        let currentViewTab = 'pending';
+
+        // DEVICE PROVISION ENGINE
+        window.onload = function() {
+            renderStreakUI();
+            checkDeviceHardwareIdentity();
+        };
+
+        function checkDeviceHardwareIdentity() {
+            const localUser = localStorage.getItem('workcen_employee_id');
+            const localBank = localStorage.getItem('workcen_bank_route');
+
+            if (!localUser || !localBank) {
+                document.getElementById('signup-modal').classList.remove('hidden');
+            } else {
+                userId = localUser;
+                targetBankRoute = localBank;
+                initializeSystemSync();
+            }
+        }
+
+        function registerDeviceNode() {
+            const nameInput = document.getElementById('reg-name').value.trim().toLowerCase().replace(/[^a-z0-String0-9]/g, "_");
+            const bankInput = document.getElementById('reg-bank').value.trim();
+
+            if (!nameInput || !bankInput) {
+                alert("Provision Error: Registry credentials cannot pass blank validation states.");
+                return;
+            }
+
+            localStorage.setItem('workcen_employee_id', nameInput);
+            localStorage.setItem('workcen_bank_route', bankInput);
+            
+            userId = nameInput;
+            targetBankRoute = bankInput;
+
+            document.getElementById('signup-modal').classList.add('hidden');
+            initializeSystemSync();
+        }
+
+        function initializeSystemSync() {
+            document.getElementById('header-user-display').innerText = userId.toUpperCase();
+            document.getElementById('settings-username').value = userId;
+            document.getElementById('settings-bank').value = targetBankRoute;
+            synchronizeDatabaseMatrix();
+        }
+
+        function toggleSettingsPanel() {
+            const panel = document.getElementById('settings-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function updateRoutingNetwork() {
+            const newBank = document.getElementById('settings-bank').value.trim();
+            if (!newBank) {
+                alert("Routing Failure: Bank Target Endpoint Null.");
+                return;
+            }
+            localStorage.setItem('workcen_bank_route', newBank);
+            targetBankRoute = newBank;
+            alert(`Network Route Shift Configured -> Directing all future payouts to: ${newBank}`);
+            document.getElementById('settings-panel').classList.add('hidden');
+        }
+
+        // REAL-TIME SYNC ENGINE LOOP
+        setInterval(() => {
+            document.getElementById('live-clock').innerText = new Date().toISOString().replace('T', ' ').substring(0, 19);
+            if (userId) evaluateDeadlines();
+        }, 1000);
+
+        function renderStreakUI() {
+            const streakBar = document.getElementById('streak-bar');
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            streakBar.innerHTML = days.map(d => `
+                <div class="bg-slate-50 border border-slate-200 rounded p-2">
+                    <div class="text-[10px] uppercase font-bold text-slate-400">${d}</div>
+                    <div class="text-xs font-bold text-slate-300 mt-1 mono" id="streak-${d.toLowerCase()}">0h</div>
+                </div>
+            `).join('');
+        }
+
+        function synchronizeDatabaseMatrix() {
+            db.ref(`work_cen/attendance/${userId}`).on('value', snapshot => {
+                const data = snapshot.val();
+                if (data && data.active_shift) {
+                    activeShift = data.active_shift;
+                    document.getElementById('attendance-node').className = "bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-md font-medium";
+                    document.getElementById('attendance-node').innerText = `🍏 Clocked In: ${data.active_shift.started_at.substring(11, 16)}`;
+                    document.getElementById('clock-btn').innerText = "Clock Out";
+                } else {
+                    activeShift = null;
+                    document.getElementById('attendance-node').className = "bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-md font-medium";
+                    document.getElementById('attendance-node').innerText = "🔴 Clocked Out";
+                    document.getElementById('clock-btn').innerText = "Clock In";
+                }
+            });
+
+            db.ref(`work_cen/tasks/${userId}`).on('value', snapshot => {
+                const tasks = snapshot.val() || {};
+                renderBacklogs(tasks);
+            });
+
+            db.ref(`work_cen/attendance/${userId}/history`).on('value', snapshot => {
+                const historyData = snapshot.val() || {};
+                const attendanceRows = document.getElementById('attendance-rows');
+                attendanceRows.innerHTML = "";
+
+                Object.keys(historyData).forEach(key => {
+                    const log = historyData[key];
+                    const inTime = new Date(log.clock_in);
+                    const outTime = new Date(log.clock_out);
+                    const diffMs = outTime - inTime;
+                    
+                    const diffHrs = Math.floor(diffMs / 3600000);
+                    const diffMins = Math.floor((diffMs % 3600000) / 60000);
+                    const diffSecs = Math.floor((diffMs % 60000) / 1000);
+
+                    attendanceRows.innerHTML += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                            <td class="p-3 font-medium text-slate-900">${log.clock_in.substring(0, 10)}</td>
+                            <td class="p-3 text-emerald-600 font-medium">${log.clock_in.substring(11, 19)}</td>
+                            <td class="p-3 text-rose-600 font-medium">${log.clock_out.substring(11, 19)}</td>
+                            <td class="p-3 text-right font-bold text-slate-700">${diffHrs}h ${diffMins}m ${diffSecs}s</td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function toggleAttendance() {
+            const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+            if (!activeShift) {
+                db.ref(`work_cen/attendance/${userId}/active_shift`).set({ started_at: nowStr });
+            } else {
+                const shiftRef = db.ref(`work_cen/attendance/${userId}/history`).push();
+                shiftRef.set({ clock_in: activeShift.started_at, clock_out: nowStr }).then(() => {
+                    db.ref(`work_cen/attendance/${userId}/active_shift`).remove();
+                });
+            }
+        }
+
+        function createNewTask() {
+            const details = document.getElementById('task-details').value;
+            const hrs = parseInt(document.getElementById('task-hrs').value) || 0;
+            const mins = parseInt(document.getElementById('task-mins').value) || 0;
+            const deadline = document.getElementById('task-deadline').value;
+
+            if (!details || (!hrs && !mins) || !deadline) {
+                alert("Matrix Input Failure: Complete all task structural details.");
+                return;
+            }
+
+            const targetDurationSeconds = (hrs * 3600) + (mins * 60);
+            const taskRef = db.ref(`work_cen/tasks/${userId}`).push();
+            
+            taskRef.set({
+                id: taskRef.key,
+                details: details,
+                target_seconds: targetDurationSeconds,
+                deadline: deadline.replace('T', ' '),
+                status: 'pending',
+                created_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
+            });
+
+            document.getElementById('task-details').value = "";
+        }
+
+        function renderBacklogs(tasks) {
+            const pendingContainer = document.getElementById('tab-pending');
+            const completedContainer = document.getElementById('completed-rows');
+            
+            pendingContainer.innerHTML = "";
+            completedContainer.innerHTML = "";
+            let ongoingFound = false;
+
+            Object.keys(tasks).forEach(key => {
+                const tx = tasks[key];
+                
+                if (tx.status === 'pending' || tx.status === 'expired') {
+                    const hrs = Math.floor(tx.target_seconds / 3600);
+                    const mins = Math.floor((tx.target_seconds % 3600) / 60);
+                    const isExpired = tx.status === 'expired';
+                    const bgModifier = isExpired ? 'border-rose-200 bg-rose-50/50' : 'border-slate-200 bg-white';
+                    const badge = isExpired ? `<span class="text-[9px] font-bold text-rose-600 bg-rose-100 border border-rose-200 px-1.5 py-0.5 rounded tracking-wide uppercase">Backlog Expired (-30% Next Reward)</span>` : '';
+
+                    pendingContainer.innerHTML += `
+                        <div class="border rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm transition-all ${bgModifier}">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-sm font-bold text-slate-900">${tx.details}</h4>
+                                    ${badge}
+                                </div>
+                                <p class="text-xs text-slate-400 font-medium mono">Allocation: ${hrs}h ${mins}m // Deadline Node: ${tx.deadline}</p>
+                            </div>
+                            <button onclick="engageTask('${tx.id}')" class="bg-slate-100 hover:bg-slate-200 border border-slate-300/70 text-slate-700 text-xs font-semibold px-4 py-2 rounded-lg transition-all w-full md:w-auto">
+                                Run Execution
+                            </button>
+                        </div>
+                    `;
+                } else if (tx.status === 'ongoing') {
+                    ongoingFound = true;
+                    activeTask = tx;
+                    setupOngoingWorkspaceUI();
+                } else if (tx.status === 'completed') {
+                    completedContainer.innerHTML += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                            <td class="p-3 font-medium text-slate-900">${tx.details}</td>
+                            <td class="p-3 text-slate-400 font-medium text-xs">${Math.floor(tx.elapsed_seconds / 3600)}h ${Math.floor((tx.elapsed_seconds % 3600) / 60)}m ${tx.elapsed_seconds % 60}s</td>
+                            <td class="p-3 text-right font-bold text-emerald-600">+${Number(tx.payout).toFixed(2)} CEN</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (!ongoingFound) {
+                document.getElementById('ongoing-workspace').classList.add('hidden');
+                if (timerInterval) clearInterval(timerInterval);
+            }
+        }
+
+        function evaluateDeadlines() {
+            const now = new Date();
+            db.ref(`work_cen/tasks/${userId}`).once('value', snapshot => {
+                const tasks = snapshot.val() || {};
+                Object.keys(tasks).forEach(key => {
+                    const tx = tasks[key];
+                    if (tx.status === 'pending' && new Date(tx.deadline) < now) {
+                        db.ref(`work_cen/tasks/${userId}/${key}/status`).set('expired');
+                    }
+                });
+            });
+        }
+
+        function engageTask(taskId) {
+            if (activeTask) {
+                alert("Thread Collision: Complete or terminate active ongoing task node first.");
+                return;
+            }
+            db.ref(`work_cen/tasks/${userId}/${taskId}/status`).set('ongoing');
+        }
+
+        function setupOngoingWorkspaceUI() {
+            document.getElementById('ongoing-workspace').classList.remove('hidden');
+            document.getElementById('ongoing-title').innerText = activeTask.details;
+            
+            const allocationHrs = Math.floor(activeTask.target_seconds / 3600);
+            const allocationMins = Math.floor((activeTask.target_seconds % 3600) / 60);
+            document.getElementById('ongoing-meta').innerText = `Target Parameter: ${allocationHrs}h ${allocationMins}m // Standard Payout: ${(activeTask.target_seconds * (350/3600)).toFixed(2)} CEN`;
+
+            if (timerInterval) clearInterval(timerInterval);
+            
+            if (!activeTask.started_epoch) {
+                activeTask.started_epoch = Date.now();
+                db.ref(`work_cen/tasks/${userId}/${activeTask.id}/started_epoch`).set(activeTask.started_epoch);
+            }
+
+            timerInterval = setInterval(() => {
+                const elapsedSeconds = Math.floor((Date.now() - activeTask.started_epoch) / 1000);
+                
+                const hrs = Math.floor(elapsedSeconds / 3600);
+                const mins = Math.floor((elapsedSeconds % 3600) / 60);
+                const secs = elapsedSeconds % 60;
+                document.getElementById('ongoing-timer').innerText = 
+                    `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+
+                const maxAllowedSeconds = activeTask.target_seconds + (4 * 3600);
+                const percentProgress = Math.min((elapsedSeconds / maxAllowedSeconds) * 100, 100);
+                document.getElementById('timer-progress-bar').style.width = `${percentProgress}%`;
+
+                if (elapsedSeconds > maxAllowedSeconds) {
+                    autoFailExpiredTask();
+                    return;
+                }
+
+                const timePercentage = (elapsedSeconds / activeTask.target_seconds) * 100;
+                let statusTag = ""; let tagColor = "text-blue-600";
+                
+                if (timePercentage <= 85) {
+                    statusTag = `Condition 1: Scaling Zone (${timePercentage.toFixed(1)}%)`;
+                } else if (elapsedSeconds <= activeTask.target_seconds + 3600) {
+                    statusTag = "Condition 2: Sweet Spot Matrix (100% Full Payout)";
+                    tagColor = "text-emerald-600";
+                } else {
+                    const overTimeSecs = elapsedSeconds - (activeTask.target_seconds + 3600);
+                    const blocks = Math.floor(overTimeSecs / 1800) + 1;
+                    statusTag = `Condition 3: Overtime Penalty Active (-${blocks * 9}% Pay)`;
+                    tagColor = "text-rose-600";
+                }
+                
+                const statusElement = document.getElementById('ongoing-status-tag');
+                statusElement.innerText = statusTag;
+                statusElement.className = `text-xs font-semibold mt-1 ${tagColor}`;
+
+                const isLateBacklog = activeTask.status === 'expired';
+                const finalCalculatedCen = runEarningCalculationsEngine(elapsedSeconds, activeTask.target_seconds, isLateBacklog);
+                document.getElementById('ongoing-est-payout').innerText = `Estimated: ${finalCalculatedCen.toFixed(2)} CEN [Target: ${targetBankRoute}]`;
+            }, 1000);
+        }
+
+        function runEarningCalculationsEngine(elapsed, target, isPenaltyActive) {
+            const baseRatePerSecond = 350 / 3600;
+            const absoluteBaseCapitalPotential = target * baseRatePerSecond;
+            const timePercentage = (elapsed / target) * 100;
+            let netResultMultiplier = 0;
+
+            if (timePercentage <= 85) {
+                netResultMultiplier = timePercentage / 100; 
+            } else if (elapsed <= target + 3600) {
+                netResultMultiplier = 1.00;
+            } else {
+                const overTimeSeconds = elapsed - (target + 3600);
+                const halfHourBlocks = Math.floor(overTimeSeconds / 1800) + 1;
+                netResultMultiplier = Math.max(1.00 - (halfHourBlocks * 0.09), 0);
+            }
+
+            let computedEarning = absoluteBaseCapitalPotential * netResultMultiplier;
+            if (isPenaltyActive) computedEarning *= 0.70; 
+            return computedEarning;
+        }
+
+        function autoFailExpiredTask() {
+            clearInterval(timerInterval);
+            alert("CRITICAL TIME EXHAUSTION ERROR: Task execution has run over 4 Hours past allocation limit. Node dropped with 0 CEN compensation.");
+            db.ref(`work_cen/tasks/${userId}/${activeTask.id}`).remove().then(() => {
+                document.getElementById('ongoing-workspace').classList.add('hidden');
+                activeTask = null;
+            });
+        }
+
+        async function commitTaskExecution() {
+            clearInterval(timerInterval);
+            const elapsedSeconds = Math.floor((Date.now() - activeTask.started_epoch) / 1000);
+            
+            db.ref(`work_cen/tasks/${userId}/${activeTask.id}`).once('value', async (snap) => {
+                const currentTaskData = snap.val();
+                const isLateBacklog = currentTaskData.status === 'expired';
+                const finalPayoutAmount = runEarningCalculationsEngine(elapsedSeconds, activeTask.target_seconds, isLateBacklog);
+
+                await db.ref(`work_cen/tasks/${userId}/${activeTask.id}`).update({
+                    status: 'completed',
+                    elapsed_seconds: elapsedSeconds,
+                    payout: finalPayoutAmount,
+                    completed_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
+                });
+
+                if (finalPayoutAmount > 0) {
+                    const timestampStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                    const newTxRef = db.ref('transactions').push();
+                    
+                    await newTxRef.set({
+                        transaction_id: `TXN_WRK_${Date.now().toString().slice(-6)}`,
+                        sender: `WORK_ENGINE_[${userId.toUpperCase()}]`,
+                        receiver: targetBankRoute, // DYNAMIC ROUTING MAP APPLIED HERE
+                        amount: finalPayoutAmount,
+                        timestamp: timestampStr,
+                        type: "WORK_CEN_PAYOUT"
+                    });
+                    alert(`Ledger Entry Dispatched! Sent +${finalPayoutAmount.toFixed(2)} CEN to Bank [${targetBankRoute}].`);
+                }
+
+                document.getElementById('ongoing-workspace').classList.add('hidden');
+                activeTask = null;
+            });
+        }
+
+        function terminateTaskExecution() {
+            if (!confirm("Confirm Terminal Disconnect? Zero CEN capital nodes will be allocated.")) return;
+            clearInterval(timerInterval);
+            db.ref(`work_cen/tasks/${userId}/${activeTask.id}`).remove().then(() => {
+                document.getElementById('ongoing-workspace').classList.add('hidden');
+                activeTask = null;
+            });
+        }
+
+        function switchTab(targetTab) {
+            currentViewTab = targetTab;
+            if (targetTab === 'pending') {
+                document.getElementById('tab-pending').classList.remove('hidden');
+                document.getElementById('tab-completed').classList.add('hidden');
+                document.getElementById('tab-pending-btn').className = "border-b-2 border-slate-900 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-900";
+                document.getElementById('tab-completed-btn').className = "border-b-2 border-transparent px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600";
+            } else {
+                document.getElementById('tab-pending').classList.add('hidden');
+                document.getElementById('tab-completed').classList.remove('hidden');
+                document.getElementById('tab-completed-btn').className = "border-b-2 border-slate-900 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-900";
+                document.getElementById('tab-pending-btn').className = "border-b-2 border-transparent px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600";
+            }
+        }
+    </script>
+</body>
+</html>
